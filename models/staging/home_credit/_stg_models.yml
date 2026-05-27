@@ -21,3 +21,11 @@ models:
         description: Total declared client income.
         data_tests:
           - not_null
+      - name: employment_years
+        description: >
+          Years employed at application. Null where the raw DAYS_EMPLOYED
+          sentinel (365243 = not employed) was scrubbed in staging.
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100

@@ -22,7 +22,12 @@ renamed as (
         name_education_type                         as education_type,
         name_family_status                          as family_status,
         cast(-days_birth / 365.25 as int)           as age_years,
-        cast(-days_employed / 365.25 as double)     as employment_years
+        -- DAYS_EMPLOYED = 365243 is Home Credit's "not employed" sentinel;
+        -- dividing it would yield ~ -1000 years, so null it out here.
+        case
+            when days_employed = 365243 then null
+            else cast(-days_employed / 365.25 as double)
+        end                                         as employment_years
     from source
 
 )

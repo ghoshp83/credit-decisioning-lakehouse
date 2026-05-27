@@ -41,4 +41,4 @@ jobs:
         run: sqlfluff lint models --dialect databricks
 
       - name: Python lint (ruff)
-        run: ruff check . || true
+        run: ruff check .
