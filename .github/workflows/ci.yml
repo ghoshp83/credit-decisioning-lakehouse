@@ -8,12 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # CI is an OFFLINE gate: `dbt parse` + sqlfluff/ruff lint validate project
+    # structure and SQL, and never connect to Databricks. These are deliberately
+    # fake placeholders (not secrets) that satisfy profile rendering so dbt can
+    # parse. Real runs happen locally against a live workspace — see README.
     env:
-      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DBT_CATALOG: ${{ secrets.DBT_CATALOG }}
-      DBT_SCHEMA: ci
+      DATABRICKS_HOST: "dbc-ci-placeholder.cloud.databricks.com"
+      DATABRICKS_HTTP_PATH: "/sql/1.0/warehouses/ci-placeholder"
+      DATABRICKS_TOKEN: "ci-offline-parse-only-not-a-real-token"
+      DBT_CATALOG: "workspace"
+      DBT_SCHEMA: "ci"
     steps:
       - uses: actions/checkout@v4
 
