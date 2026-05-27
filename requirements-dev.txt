@@ -1,0 +1,9 @@
+# dbt + Databricks adapter (dbt >= 1.8 for unit tests)
+dbt-databricks>=1.8,<2.0
+
+# SQL linting with the dbt templater
+sqlfluff>=3.0,<4.0
+sqlfluff-templater-dbt>=3.0,<4.0
+
+# Python linting (helpers, macros tooling)
+ruff>=0.5

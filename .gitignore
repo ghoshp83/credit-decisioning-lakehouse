@@ -1,0 +1,35 @@
+# --- secrets / credentials (Hard Rule 7) ---
+.env
+*.pem
+profiles.yml
+**/secrets*.yml
+
+# --- dbt ---
+target/
+dbt_packages/
+logs/
+.user.yml
+
+# --- python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# --- raw data: large, never committed (lands in data/) ---
+/data/
+*.parquet
+*.zip
+
+# --- workspace-internal, NEVER pushed (Hard Rule 3) ---
+.claude/
+CLAUDE.md
+promo/
+docs/decisions.md
+docs/progress.md
+docs/USER_GUIDE.md
+
+# --- OS / editor ---
+.DS_Store
+.vscode/

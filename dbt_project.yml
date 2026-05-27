@@ -1,0 +1,29 @@
+name: "credit_decisioning_lakehouse"
+version: "0.1.0"
+config-version: 2
+
+profile: "credit_decisioning_lakehouse"
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Medallion layering mapped onto dbt's staging -> intermediate -> marts.
+models:
+  credit_decisioning_lakehouse:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+      +schema: marts

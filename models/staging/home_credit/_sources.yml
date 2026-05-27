@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: home_credit
+    description: >
+      Raw Home Credit Default Risk tables landed in the bronze layer. Static
+      historical dataset (not live origination) — see README honest disclaimer.
+    database: "{{ env_var('DBT_RAW_CATALOG', 'workspace') }}"
+    schema: "{{ env_var('DBT_RAW_SCHEMA', 'home_credit_raw') }}"
+    tables:
+      - name: application_train
+        description: One row per loan application, with the default-risk TARGET label.
+      - name: application_test
+        description: Applications without labels (scoring set).
+      - name: bureau
+        description: Prior credits from other institutions reported to the credit bureau.
+      - name: bureau_balance
+        description: Monthly balances of the bureau credits.
+      - name: previous_application
+        description: Prior Home Credit loan applications.
+      - name: installments_payments
+        description: Repayment history for prior Home Credit credits.
+      - name: pos_cash_balance
+        description: Monthly POS and cash-loan balance snapshots.
+      - name: credit_card_balance
+        description: Monthly credit-card balance snapshots for prior credits.

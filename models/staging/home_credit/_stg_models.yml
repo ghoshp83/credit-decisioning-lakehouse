@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: stg_applications
+    description: >
+      Cleaned, renamed one-row-per-application view over the raw
+      application_train table. Silver-layer entry point for the feature marts.
+    columns:
+      - name: application_id
+        description: Surrogate key of the loan application (raw SK_ID_CURR).
+        data_tests:
+          - not_null
+          - unique
+      - name: is_default
+        description: Target label — 1 if the client had payment difficulties, else 0.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: income_total
+        description: Total declared client income.
+        data_tests:
+          - not_null

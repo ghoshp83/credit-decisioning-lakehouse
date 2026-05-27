@@ -1,0 +1,16 @@
+# Copy to profiles.yml (gitignored) OR place in ~/.dbt/profiles.yml.
+# Secrets are read from environment variables — NEVER hard-code tokens here.
+#   export DATABRICKS_HOST=adb-xxxx.azuredatabricks.net   (no https://)
+#   export DATABRICKS_HTTP_PATH=/sql/1.0/warehouses/xxxx
+#   export DATABRICKS_TOKEN=dapi...                       (a Databricks PAT)
+credit_decisioning_lakehouse:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      catalog: "{{ env_var('DBT_CATALOG', 'workspace') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'credit_dev') }}"
+      threads: 4
