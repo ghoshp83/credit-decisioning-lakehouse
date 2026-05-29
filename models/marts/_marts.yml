@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: fct_applications
+    description: >
+      Gold applicant-level feature mart — one row per loan application with
+      cleaned attributes, rolled-up bureau credit history, and derived ratio
+      features. The tested, contracted data product the PD model trains on.
+    config:
+      contract:
+        enforced: true
+    # Contract data types follow the Home Credit data dictionary and the casts
+    # in the staging models; they are enforced at the first real `dbt build`
+    # against the warehouse (CI parses/lints offline only — see README).
+    columns:
+      - name: application_id
+        data_type: bigint
+        description: Surrogate key of the loan application (raw SK_ID_CURR).
+        data_tests:
+          - not_null
+          - unique
+      - name: is_default
+        data_type: int
+        description: Target label — 1 if the client had payment difficulties, else 0.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: contract_type
+        data_type: string
+        description: Cash loan vs revolving loan.
+      - name: income_total
+        data_type: double
+        description: Total declared client income.
+      - name: credit_amount
+        data_type: double
+        description: Credit amount of the loan.
+      - name: annuity_amount
+        data_type: double
+        description: Loan annuity.
+      - name: age_years
+        data_type: int
+        description: Applicant age in years at application.
+      - name: employment_years
+        data_type: double
+        description: Years employed; null where the not-employed sentinel was scrubbed.
+      - name: prior_credit_count
+        data_type: bigint
+        description: Count of prior bureau credits; 0 when no bureau history.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: active_credit_count
+        data_type: bigint
+        description: Count of currently-active bureau credits.
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: total_credit_debt
+        data_type: double
+        description: Sum of outstanding debt across bureau credits.
+      - name: total_credit_overdue
+        data_type: double
+        description: Sum of overdue amounts across bureau credits.
+      - name: max_days_overdue
+        data_type: int
+        description: Worst overdue duration across bureau credits, in days.
+      - name: credit_to_income_ratio
+        data_type: double
+        description: credit_amount / income_total; null when income is null or zero.
+      - name: annuity_to_income_ratio
+        data_type: double
+        description: annuity_amount / income_total; null when income is null or zero.

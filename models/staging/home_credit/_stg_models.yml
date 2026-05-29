@@ -29,3 +29,23 @@ models:
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 100
+
+  - name: stg_bureau
+    description: >
+      Cleaned one-row-per-bureau-credit view over the raw bureau table — prior
+      credits at other institutions. Grain is the bureau credit, not the
+      application; rolled up to applicant level in int_bureau_aggregations.
+    columns:
+      - name: bureau_credit_id
+        description: Surrogate key of the bureau credit (raw SK_ID_BUREAU).
+        data_tests:
+          - not_null
+          - unique
+      - name: application_id
+        description: FK to stg_applications (raw SK_ID_CURR).
+        data_tests:
+          - not_null
+      - name: credit_status
+        description: Bureau-reported status of the credit (Active, Closed, etc.).
+        data_tests:
+          - not_null

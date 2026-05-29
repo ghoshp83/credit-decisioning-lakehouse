@@ -9,6 +9,9 @@ exclude_rules = RF04
 
 [sqlfluff:templater:jinja]
 apply_dbt_builtins = true
+# Load our own macros (e.g. safe_divide) so the jinja templater can render
+# model SQL that calls them; without this they read as undefined variables.
+load_macros_from_path = macros
 
 [sqlfluff:rules:capitalisation.keywords]
 capitalisation_policy = lower

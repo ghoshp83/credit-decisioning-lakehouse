@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: int_bureau_aggregations
+    description: >
+      One row per application_id summarising that applicant's bureau credit
+      history (counts, debt, overdue). Ephemeral — inlined into fct_applications.
+    columns:
+      - name: application_id
+        description: FK to stg_applications. One row per applicant present in bureau.
+        data_tests:
+          - not_null
+          - unique
+      - name: prior_credit_count
+        description: Number of prior bureau-reported credits for the applicant.
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 1000
