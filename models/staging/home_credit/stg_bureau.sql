@@ -7,7 +7,7 @@ with source as (
 renamed as (
 
     select
-        sk_id_curr as application_id,
+        cast(sk_id_curr as bigint) as application_id,
         sk_id_bureau as bureau_credit_id,
         credit_active as credit_status,
         credit_type,

@@ -7,7 +7,7 @@ with source as (
 renamed as (
 
     select
-        sk_id_curr as application_id,
+        cast(sk_id_curr as bigint) as application_id,
         target as is_default,
         name_contract_type as contract_type,
         code_gender as gender,
