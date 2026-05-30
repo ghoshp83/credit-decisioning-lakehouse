@@ -1,0 +1,44 @@
+# Project configuration for credit-decisioning-lakehouse.
+# Read by the Python tooling AROUND dbt (raw-data load, the PD model, the AI
+# layer) — NOT by dbt itself (dbt uses dbt_project.yml + profiles.yml). This
+# keeps the non-dbt knobs in one place. Workspace IDs match databricks.yml.
+#
+# Honest status: the ml_model and ai_layer sections describe PLANNED layers
+# (see the README roadmap) — endpoints are recorded for when we build them and
+# are not yet wired or verified against the free workspace.
+
+workspace:
+  host: https://dbc-5604c867-d90d.cloud.databricks.com   # free Databricks workspace
+  warehouse_id: f871f96e97724dca                          # serverless SQL warehouse
+
+# Unity Catalog targets — mirror the profiles.yml env_var defaults.
+unity_catalog:
+  catalog: workspace
+  raw_schema: home_credit_raw    # bronze: raw Home Credit tables land here
+  dbt_schema: credit_dev         # dbt staging/marts build under here
+
+# Home Credit Default Risk raw tables loaded into the bronze schema.
+# Static historical dataset (Kaggle) — not a live feed (honest disclaimer).
+raw_data:
+  source: "kaggle:home-credit-default-risk"
+  tables:
+    - application_train
+    - bureau
+  # Remaining tables (bureau_balance, previous_application, installments_payments,
+  # POS_CASH_balance, credit_card_balance) load as feature sources are added.
+
+# Traditional ML — calibrated probability-of-default model. NOT yet built.
+ml_model:
+  experiment_name: /Shared/credit-decisioning-pd
+  algorithm: lightgbm
+  target: is_default
+  calibration: isotonic
+
+# AI layer — grounded-only; no LLM in the prediction path. NOT yet built.
+#   (1) SHAP-grounded adverse-action explanations
+#   (2) validated NL->SQL portfolio analytics
+# Verify endpoint availability on the free tier before relying on it.
+ai_layer:
+  llm_endpoint: databricks-llama-4-maverick
+  temperature: 0.2
+  max_tokens: 1000
