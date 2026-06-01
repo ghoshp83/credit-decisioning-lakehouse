@@ -72,3 +72,57 @@ models:
       - name: annuity_to_income_ratio
         data_type: double
         description: annuity_amount / income_total; null when income is null or zero.
+
+  - name: fct_installment_payments
+    description: >
+      Gold event-grain fact — one row per prior-credit installment payment.
+      Incremental model with a Delta MERGE on payment_id: re-runs are
+      idempotent and a real append only processes newer installments. The
+      source is a static historical dump, so the incremental watermark is
+      illustrative of the mechanics (see README honest disclaimer); the MERGE
+      key is what guarantees correctness on every re-run. The unique test on
+      payment_id encodes that guarantee — if it fails, the merge key is wrong.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: payment_id
+        data_type: string
+        description: Surrogate key of the payment event; the MERGE unique key.
+        data_tests:
+          - not_null
+          - unique
+      - name: prior_credit_id
+        data_type: bigint
+        description: Prior Home Credit credit the installment belongs to (SK_ID_PREV).
+      - name: application_id
+        data_type: bigint
+        description: Application the credit belongs to (SK_ID_CURR); spans train + test.
+        data_tests:
+          - not_null
+      - name: installment_version
+        data_type: int
+        description: Version of the installment calendar for the credit.
+      - name: installment_number
+        data_type: int
+        description: Sequence number of the installment within the credit.
+      - name: installment_due_day
+        data_type: int
+        description: Scheduled installment day (negative offset from application).
+        data_tests:
+          - not_null
+      - name: payment_entry_day
+        data_type: int
+        description: Day the payment was actually entered; null if not paid.
+      - name: installment_amount
+        data_type: double
+        description: Prescribed installment amount.
+      - name: payment_amount
+        data_type: double
+        description: Amount actually paid for the installment; null if not paid.
+      - name: payment_shortfall
+        data_type: double
+        description: installment_amount - payment_amount; positive = underpaid.
+      - name: days_late
+        data_type: int
+        description: payment_entry_day - installment_due_day; positive = paid late.

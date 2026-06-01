@@ -49,3 +49,29 @@ models:
         description: Bureau-reported status of the credit (Active, Closed, etc.).
         data_tests:
           - not_null
+
+  - name: stg_installments
+    description: >
+      Cleaned one-row-per-installment-payment view over the raw
+      installments_payments table — repayment history for prior Home Credit
+      credits. Grain is the payment event (a single scheduled installment may
+      be paid in parts), keyed by the payment_id surrogate. Feeds the
+      incremental fct_installment_payments fact. No relationships test on
+      application_id: installments cover both train and test applicants, so
+      ids legitimately absent from stg_applications are expected, not orphans.
+    columns:
+      - name: payment_id
+        description: >
+          Surrogate key of the payment event — md5 over (sk_id_prev,
+          version, number, entry_day, amount), the verified-unique business
+          grain. The MERGE key for the incremental fact.
+        data_tests:
+          - not_null
+      - name: application_id
+        description: FK to the application (raw SK_ID_CURR); spans train + test.
+        data_tests:
+          - not_null
+      - name: installment_due_day
+        description: Scheduled installment day (negative offset from application).
+        data_tests:
+          - not_null

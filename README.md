@@ -96,15 +96,20 @@ dbt docs generate  # lineage / documentation
 
 ## Honest disclaimer
 
-This repository is in **active development**. Current status: the project is
-**scaffolded** — dbt project structure, staging model + tests, CI, and docs are
-in place; the **feature marts, the ML model, and the AI layer are not yet
-implemented**, and the pipeline has **not yet been run end-to-end** against a
-live Databricks workspace.
+This repository is in **active development**. Current status: the **dbt
+transformation layer runs end-to-end against a live Databricks workspace** —
+staging models, an applicant feature mart with an **enforced contract**, and an
+**incremental installment-payments fact** (Delta `MERGE`, idempotent re-runs),
+all with tests, plus CI and docs. The **ML model (LightGBM PD) and the AI layer
+are not yet implemented**.
 
-When complete:
+Other honest notes:
 - The dataset is **Home Credit Default Risk** — a *static historical* dataset,
   not live loan origination.
+- The incremental fact's high-watermark filter is **illustrative of the
+  mechanics** on this static dump (there is no live ingestion). Idempotency is
+  guaranteed by the Delta `MERGE` on a verified-unique surrogate key — proven by
+  re-running the model and observing identical row counts, not by the watermark.
 - Fairness analysis uses the **proxy attributes available in the data**; it is
   not a substitute for a regulated fairness audit.
 - Adverse-action wording is **illustrative**, not legal advice.
