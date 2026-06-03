@@ -126,3 +126,27 @@ models:
       - name: days_late
         data_type: int
         description: payment_entry_day - installment_due_day; positive = paid late.
+
+unit_tests:
+  - name: test_fct_applications_handles_no_bureau_and_zero_income
+    description: >
+      Two intents in one mart-shaped case. (1) The left join must keep an
+      applicant with no bureau history, with coalesce zeroing the credit-history
+      counts rather than dropping the row or leaving nulls. (2) safe_divide must
+      degrade the credit/annuity-to-income ratios to null when income is zero,
+      never erroring or emitting infinity. App 1 has bureau history and non-zero
+      income (real ratios); App 2 has neither.
+    model: fct_applications
+    given:
+      - input: ref('stg_applications')
+        rows:
+          - {application_id: 1, is_default: 0, contract_type: 'Cash loans', income_total: 10000.0, credit_amount: 30000.0, annuity_amount: 1000.0, age_years: 40, employment_years: 5.0}
+          - {application_id: 2, is_default: 1, contract_type: 'Cash loans', income_total: 0.0, credit_amount: 5000.0, annuity_amount: 200.0, age_years: 30, employment_years: null}
+      - input: ref('int_bureau_aggregations')
+        rows:
+          # Only applicant 1 has bureau history; applicant 2 is absent on purpose.
+          - {application_id: 1, prior_credit_count: 3, active_credit_count: 1, total_credit_debt: 500.0, total_credit_overdue: 0.0, max_days_overdue: 12}
+    expect:
+      rows:
+        - {application_id: 1, is_default: 0, contract_type: 'Cash loans', income_total: 10000.0, credit_amount: 30000.0, annuity_amount: 1000.0, age_years: 40, employment_years: 5.0, prior_credit_count: 3, active_credit_count: 1, total_credit_debt: 500.0, total_credit_overdue: 0.0, max_days_overdue: 12, credit_to_income_ratio: 3.0, annuity_to_income_ratio: 0.1}
+        - {application_id: 2, is_default: 1, contract_type: 'Cash loans', income_total: 0.0, credit_amount: 5000.0, annuity_amount: 200.0, age_years: 30, employment_years: null, prior_credit_count: 0, active_credit_count: 0, total_credit_debt: 0.0, total_credit_overdue: 0.0, max_days_overdue: 0, credit_to_income_ratio: null, annuity_to_income_ratio: null}

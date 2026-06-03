@@ -1,7 +1,8 @@
 -- Roll up the many bureau credits per applicant into one feature row.
 -- Multi-row -> one-row-per-application aggregation: the core feature-mart
--- building block. Ephemeral, so it inlines into fct_applications (no extra
--- relation to manage) while keeping the aggregation logic isolated and testable.
+-- building block. Materialized as a view (the intermediate-layer default) so
+-- the aggregation is isolated, independently queryable, and mockable as an
+-- input when unit-testing fct_applications.
 
 with bureau as (
 

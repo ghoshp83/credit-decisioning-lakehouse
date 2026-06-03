@@ -4,7 +4,8 @@ models:
   - name: int_bureau_aggregations
     description: >
       One row per application_id summarising that applicant's bureau credit
-      history (counts, debt, overdue). Ephemeral — inlined into fct_applications.
+      history (counts, debt, overdue). Materialized as a view; joined into
+      fct_applications.
     columns:
       - name: application_id
         description: FK to stg_applications. One row per applicant present in bureau.
@@ -17,3 +18,22 @@ models:
           - dbt_utils.accepted_range:
               min_value: 1
               max_value: 1000
+
+unit_tests:
+  - name: test_int_bureau_aggregations_rolls_up_per_applicant
+    description: >
+      The core multi-row -> one-row-per-applicant rollup. Two credits for one
+      applicant and one for another must collapse to one row each with the
+      right counts (count, count_if Active), sums (debt, overdue) and max
+      (days_overdue). Fails if the grain or any aggregate is wrong.
+    model: int_bureau_aggregations
+    given:
+      - input: ref('stg_bureau')
+        rows:
+          - {application_id: 100, credit_status: 'Active', credit_debt: 1000.0, credit_overdue: 50.0, days_overdue: 10}
+          - {application_id: 100, credit_status: 'Closed', credit_debt: 500.0, credit_overdue: 0.0, days_overdue: 0}
+          - {application_id: 200, credit_status: 'Active', credit_debt: 300.0, credit_overdue: 0.0, days_overdue: 5}
+    expect:
+      rows:
+        - {application_id: 100, prior_credit_count: 2, active_credit_count: 1, total_credit_debt: 1500.0, total_credit_overdue: 50.0, max_days_overdue: 10}
+        - {application_id: 200, prior_credit_count: 1, active_credit_count: 1, total_credit_debt: 300.0, total_credit_overdue: 0.0, max_days_overdue: 5}

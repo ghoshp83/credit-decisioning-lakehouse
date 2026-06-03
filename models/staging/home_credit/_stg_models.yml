@@ -75,3 +75,24 @@ models:
         description: Scheduled installment day (negative offset from application).
         data_tests:
           - not_null
+
+unit_tests:
+  - name: test_stg_applications_scrubs_not_employed_sentinel
+    description: >
+      DAYS_EMPLOYED = 365243 is Home Credit's "not employed" sentinel; left
+      as-is it divides to ~ -1000 employment-years and poisons the feature.
+      This test fails if anyone drops the scrub: the sentinel row must yield a
+      null employment_years, while a normal negative-days row converts to a
+      positive year count. Encodes repo-review finding 1.
+    model: stg_applications
+    given:
+      - input: source('home_credit', 'application_train')
+        rows:
+          # Sentinel applicant — "not employed".
+          - {sk_id_curr: 1, target: 1, name_contract_type: null, code_gender: null, flag_own_car: null, flag_own_realty: null, cnt_children: null, amt_income_total: null, amt_credit: null, amt_annuity: null, amt_goods_price: null, name_income_type: null, name_education_type: null, name_family_status: null, days_birth: -3653, days_employed: 365243}
+          # Normal applicant — employed; -1461 days = exactly 4.0 years.
+          - {sk_id_curr: 2, target: 0, name_contract_type: null, code_gender: null, flag_own_car: null, flag_own_realty: null, cnt_children: null, amt_income_total: null, amt_credit: null, amt_annuity: null, amt_goods_price: null, name_income_type: null, name_education_type: null, name_family_status: null, days_birth: -1461, days_employed: -1461}
+    expect:
+      rows:
+        - {application_id: 1, is_default: 1, age_years: 10, employment_years: null}
+        - {application_id: 2, is_default: 0, age_years: 4, employment_years: 4.0}
