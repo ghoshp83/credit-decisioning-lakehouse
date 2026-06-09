@@ -93,6 +93,8 @@ dbt docs generate  # lineage / documentation
 - **Observability** — dbt artifacts (`run_results.json`, lineage) plus MLflow
   run tracking; prediction-distribution tests catch drift.
 - **Auditability** — every decision traces raw → feature → prediction → reason.
+- **Failure handling** — see the [Runbook](RUNBOOK.md) for what to do when a run
+  fails, a test fails, a source looks stale, or a contract is violated.
 
 ## Honest disclaimer
 
