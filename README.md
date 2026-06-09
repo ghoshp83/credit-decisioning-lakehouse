@@ -30,7 +30,7 @@ flowchart LR
         A[Home Credit tables<br/>application, bureau,<br/>previous_application, ...]
     end
     subgraph Silver["Silver - staging/intermediate (dbt)"]
-        B[cleaned, typed, conformed<br/>+ source freshness + contracts]
+        B[cleaned, typed, conformed<br/>+ enforced contracts]
     end
     subgraph Gold["Gold - feature marts (dbt)"]
         C[applicant feature table<br/>tested + documented data products]
@@ -88,8 +88,8 @@ dbt docs generate  # lineage / documentation
 ## Operational characteristics
 
 - **Idempotent builds** — re-running `dbt build` reproduces the same marts.
-- **Data quality as code** — schema/`not_null`/accepted-values tests gate every
-  model; source freshness flags stale inputs.
+- **Data quality as code** — schema/`not_null`/accepted-values tests and dbt
+  unit tests gate every model.
 - **Observability** — dbt artifacts (`run_results.json`, lineage) plus MLflow
   run tracking; prediction-distribution tests catch drift.
 - **Auditability** — every decision traces raw → feature → prediction → reason.
@@ -106,6 +106,11 @@ are not yet implemented**.
 Other honest notes:
 - The dataset is **Home Credit Default Risk** — a *static historical* dataset,
   not live loan origination.
+- **Source freshness checks are intentionally disabled** (`freshness: null` in
+  `_sources.yml`): a one-time static dump has no ingestion clock or load
+  timestamp, so a freshness threshold would never meaningfully fire. The hook to
+  re-enable it (a `loaded_at_field` + threshold) is documented in-line for the
+  day a live feed is attached.
 - The incremental fact's high-watermark filter is **illustrative of the
   mechanics** on this static dump (there is no live ingestion). Idempotency is
   guaranteed by the Delta `MERGE` on a verified-unique surrogate key — proven by

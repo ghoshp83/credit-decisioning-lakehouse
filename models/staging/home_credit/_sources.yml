@@ -7,6 +7,13 @@ sources:
       historical dataset (not live origination) — see README honest disclaimer.
     database: "{{ env_var('DBT_RAW_CATALOG', 'workspace') }}"
     schema: "{{ env_var('DBT_RAW_SCHEMA', 'home_credit_raw') }}"
+    # Source freshness is deliberately DISABLED. dbt freshness needs a
+    # loaded_at_field and a meaningful "stale" threshold; this is a one-time
+    # static historical dump with no ingestion clock and no load timestamp, so a
+    # freshness check would be theatre. Resolved honestly (skip + say why)
+    # rather than asserting a check that can never fail. Re-enable per table with
+    # a `freshness:` block + `loaded_at_field` if a live feed is ever attached.
+    freshness: null
     tables:
       - name: application_train
         description: One row per loan application, with the default-risk TARGET label.
