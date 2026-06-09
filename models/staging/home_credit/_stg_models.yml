@@ -16,7 +16,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
       - name: income_total
         description: Total declared client income.
         data_tests:
@@ -27,8 +28,9 @@ models:
           sentinel (365243 = not employed) was scrubbed in staging.
         data_tests:
           - dbt_utils.accepted_range:
-              min_value: 0
-              max_value: 100
+              arguments:
+                min_value: 0
+                max_value: 100
 
   - name: stg_bureau
     description: >

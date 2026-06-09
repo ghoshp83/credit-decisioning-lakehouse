@@ -25,7 +25,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
       - name: contract_type
         data_type: string
         description: Cash loan vs revolving loan.
@@ -50,13 +51,15 @@ models:
         data_tests:
           - not_null
           - dbt_utils.accepted_range:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: active_credit_count
         data_type: bigint
         description: Count of currently-active bureau credits.
         data_tests:
           - dbt_utils.accepted_range:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: total_credit_debt
         data_type: double
         description: Sum of outstanding debt across bureau credits.

@@ -16,8 +16,9 @@ models:
         description: Number of prior bureau-reported credits for the applicant.
         data_tests:
           - dbt_utils.accepted_range:
-              min_value: 1
-              max_value: 1000
+              arguments:
+                min_value: 1
+                max_value: 1000
 
 unit_tests:
   - name: test_int_bureau_aggregations_rolls_up_per_applicant
