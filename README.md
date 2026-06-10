@@ -136,8 +136,11 @@ gold feature mart is exported to a local training boundary and a **LightGBM PD
 model trains with MLflow tracking** (AUC ≈ 0.68, KS ≈ 0.26 on a held-out split),
 with **calibration measured and a [model card](MODEL_CARD.md)** (the raw
 probabilities are already well-calibrated — Brier ≈ 0.071 — and reported as
-such), and **per-applicant SHAP drivers written back to Delta** as `pd_predictions`.
-The grounded adverse-action explanation and NL→SQL AI layer are not yet complete.
+such), and **per-applicant SHAP drivers written back to Delta** as `pd_predictions`,
+which **re-enters dbt as a governed source** (`stg_pd_predictions`) and a scored
+mart (`fct_scored_applications`) with tests — lineage closed from raw row to
+prediction. The grounded adverse-action explanation and NL→SQL AI layer are the
+remaining pieces, not yet complete.
 
 Other honest notes:
 - The dataset is **Home Credit Default Risk** — a *static historical* dataset,

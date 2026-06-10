@@ -130,6 +130,29 @@ models:
         data_type: int
         description: payment_entry_day - installment_due_day; positive = paid late.
 
+  - name: fct_scored_applications
+    description: >
+      Gold scored-applications product — the feature mart joined to its model
+      prediction and top SHAP drivers. The queryable surface for portfolio
+      analytics and grounded adverse-action explanations. No enforced contract
+      here (unlike fct_applications, the contracted feature product): this is a
+      convenience join whose column types are inherited from already-tested,
+      already-contracted upstreams.
+    columns:
+      - name: application_id
+        description: Surrogate key of the scored application.
+        data_tests:
+          - not_null
+          - unique
+      - name: predicted_pd
+        description: Model probability of default, in [0, 1].
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+
 unit_tests:
   - name: test_fct_applications_handles_no_bureau_and_zero_income
     description: >

@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: model_outputs
+    description: >
+      Model outputs written back to Delta by the ML layer (ml/shap_drivers.py):
+      per-applicant predicted probability-of-default and the top SHAP drivers.
+      Re-enters the governed dbt layer as a source so model results stay
+      lineage-tracked — raw application → feature mart → model → back into dbt —
+      instead of being stranded in a notebook. Populated out-of-band by the
+      Python scoring job, not by dbt.
+    database: "{{ env_var('DBT_CATALOG', 'workspace') }}"
+    schema: "{{ env_var('DBT_ML_SCHEMA', 'credit_ml') }}"
+    config:
+      # Disabled for the same reason as the home_credit source: scored on demand
+      # by the ML job, no ingestion clock or load timestamp to threshold against.
+      freshness: null
+    tables:
+      - name: pd_predictions
+        description: >
+          One row per scored application — predicted PD plus the three
+          most risk-increasing features (largest positive SHAP value).

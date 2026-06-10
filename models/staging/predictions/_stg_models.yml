@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_pd_predictions
+    description: >
+      Cleaned, typed view over the model-output Delta table — one row per scored
+      application with the predicted PD and top-3 SHAP drivers. The governed
+      re-entry point for the model's outputs.
+    columns:
+      - name: application_id
+        description: Surrogate key of the scored application.
+        data_tests:
+          - not_null
+          - unique
+          # Every scored application must exist in the feature mart it was
+          # scored from — guards against a stale or mismatched prediction load.
+          - relationships:
+              arguments:
+                to: ref('fct_applications')
+                field: application_id
+      - name: predicted_pd
+        description: Model probability of default, in [0, 1].
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: top1_feature
+        description: Most risk-increasing feature for this applicant (largest positive SHAP).
+        data_tests:
+          - not_null
