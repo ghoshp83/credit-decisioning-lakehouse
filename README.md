@@ -99,6 +99,9 @@ uv pip install --python .venv-ml -r requirements-ml.txt
 # Export one snapshot of the gold feature mart to a local training boundary
 DATABRICKS_HOST=... DATABRICKS_HTTP_PATH=... DATABRICKS_TOKEN=... \
   .venv-ml/bin/python ml/pull_features.py
+
+# Train the LightGBM PD model; runs are tracked in a local MLflow store (mlruns/)
+.venv-ml/bin/python -m ml.train
 ```
 
 ## Operational characteristics
@@ -119,8 +122,9 @@ transformation layer runs end-to-end against a live Databricks workspace** —
 staging models, an applicant feature mart with an **enforced contract**, and an
 **incremental installment-payments fact** (Delta `MERGE`, idempotent re-runs),
 all with tests, plus CI and docs. The **ML training layer is in progress**: the
-gold feature mart is exported to a local training boundary (`ml/pull_features.py`);
-model training, calibration, SHAP explanations, and the AI layer are not yet
+gold feature mart is exported to a local training boundary and a **LightGBM PD
+model trains with MLflow tracking** (AUC ≈ 0.68, KS ≈ 0.26 on a held-out split).
+Probability calibration, SHAP explanations, and the AI layer are not yet
 complete.
 
 Other honest notes:
@@ -135,6 +139,10 @@ Other honest notes:
   mechanics** on this static dump (there is no live ingestion). Idempotency is
   guaranteed by the Delta `MERGE` on a verified-unique surrogate key — proven by
   re-running the model and observing identical row counts, not by the watermark.
+- The PD model trains on a **deliberately compact feature set** (the governed
+  mart's ~13 columns) to keep the lineage story legible; published Home Credit
+  leaderboards reach higher AUC with hundreds of engineered features. The point
+  here is the *governed, explainable, traceable* pipeline, not a leaderboard score.
 - Fairness analysis uses the **proxy attributes available in the data**; it is
   not a substitute for a regulated fairness audit.
 - Adverse-action wording is **illustrative**, not legal advice.
