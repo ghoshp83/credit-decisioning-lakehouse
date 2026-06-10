@@ -102,7 +102,13 @@ DATABRICKS_HOST=... DATABRICKS_HTTP_PATH=... DATABRICKS_TOKEN=... \
 
 # Train the LightGBM PD model; runs are tracked in a local MLflow store (mlruns/)
 .venv-ml/bin/python -m ml.train
+
+# Calibrate probabilities + fairness slices; writes metrics behind the model card
+.venv-ml/bin/python -m ml.calibrate
 ```
+
+See the [Model Card](MODEL_CARD.md) for metrics, calibration, fairness slices,
+and limitations.
 
 ## Operational characteristics
 
@@ -123,9 +129,10 @@ staging models, an applicant feature mart with an **enforced contract**, and an
 **incremental installment-payments fact** (Delta `MERGE`, idempotent re-runs),
 all with tests, plus CI and docs. The **ML training layer is in progress**: the
 gold feature mart is exported to a local training boundary and a **LightGBM PD
-model trains with MLflow tracking** (AUC ≈ 0.68, KS ≈ 0.26 on a held-out split).
-Probability calibration, SHAP explanations, and the AI layer are not yet
-complete.
+model trains with MLflow tracking** (AUC ≈ 0.68, KS ≈ 0.26 on a held-out split),
+with **calibration measured and a [model card](MODEL_CARD.md)** (the raw
+probabilities are already well-calibrated — Brier ≈ 0.071 — and reported as
+such). SHAP explanations and the AI layer are not yet complete.
 
 Other honest notes:
 - The dataset is **Home Credit Default Risk** — a *static historical* dataset,
