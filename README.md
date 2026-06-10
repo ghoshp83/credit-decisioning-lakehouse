@@ -85,6 +85,22 @@ dbt build          # runs models + their tests
 dbt docs generate  # lineage / documentation
 ```
 
+### Train the probability-of-default model
+
+The model trains on the governed gold mart (`fct_applications`) — the single
+source of truth for features, so there is one definition of every feature and
+lineage holds from raw row to model input.
+
+```bash
+# Separate env for the ML stack, kept off the dbt adapter's dependency pins
+uv venv --python 3.11 .venv-ml
+uv pip install --python .venv-ml -r requirements-ml.txt
+
+# Export one snapshot of the gold feature mart to a local training boundary
+DATABRICKS_HOST=... DATABRICKS_HTTP_PATH=... DATABRICKS_TOKEN=... \
+  .venv-ml/bin/python ml/pull_features.py
+```
+
 ## Operational characteristics
 
 - **Idempotent builds** — re-running `dbt build` reproduces the same marts.
@@ -102,8 +118,10 @@ This repository is in **active development**. Current status: the **dbt
 transformation layer runs end-to-end against a live Databricks workspace** —
 staging models, an applicant feature mart with an **enforced contract**, and an
 **incremental installment-payments fact** (Delta `MERGE`, idempotent re-runs),
-all with tests, plus CI and docs. The **ML model (LightGBM PD) and the AI layer
-are not yet implemented**.
+all with tests, plus CI and docs. The **ML training layer is in progress**: the
+gold feature mart is exported to a local training boundary (`ml/pull_features.py`);
+model training, calibration, SHAP explanations, and the AI layer are not yet
+complete.
 
 Other honest notes:
 - The dataset is **Home Credit Default Risk** — a *static historical* dataset,

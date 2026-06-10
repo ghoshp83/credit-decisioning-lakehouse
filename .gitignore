@@ -12,10 +12,17 @@ logs/
 
 # --- python ---
 .venv/
+.venv-ml/
 venv/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# --- ML layer: local artifacts, never committed ---
+ml/data/
+mlruns/
+*.joblib
+*.pkl
 
 # --- raw data: large, never committed (lands in data/) ---
 /data/

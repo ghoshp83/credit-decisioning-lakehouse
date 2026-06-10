@@ -1,0 +1,19 @@
+# ML training layer — kept separate from requirements-dev.txt (dbt) so the
+# LightGBM/SHAP stack never collides with the dbt-databricks adapter's pins.
+# Install into a dedicated venv:  uv venv --python 3.11 .venv-ml
+#                                 uv pip install --python .venv-ml -r requirements-ml.txt
+
+# Pull the gold feature mart from the Databricks SQL warehouse
+databricks-sql-connector>=3.0,<4.0
+pandas>=2.0
+pyarrow>=15.0
+
+# Probability-of-default model + calibration + metrics
+lightgbm>=4.0
+scikit-learn>=1.4
+
+# Experiment tracking (local file store by default — see ml/README.md)
+mlflow>=2.12
+
+# Per-prediction explanation drivers
+shap>=0.45
