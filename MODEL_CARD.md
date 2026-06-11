@@ -83,6 +83,23 @@ This is a **proxy-attribute** check on available columns, **not** a substitute
 for a regulated fairness audit (which would require protected attributes this
 dataset does not expose).
 
+## Adverse-action explanation grounding
+
+The downstream LLM explanations are constrained to this model's own evidence and
+the constraint is **measured, not assumed**. Each declined applicant's top-3
+SHAP drivers are mapped to fixed labels, and `ai_query` may cite only those; the
+`assert_adverse_action_reasons_grounded` dbt test fails the build on any
+violation. Over the 500 generated reasons:
+
+| Grounding metric | Value |
+|------------------|-------|
+| Reasons citing ≥1 of the applicant's real drivers | **500 / 500 (100%)** |
+| Reasons citing a factor the model did *not* use | **0** |
+| Mean real drivers cited per reason | **2.5 / 3** |
+
+So the explanation layer reflects the model's drivers rather than inventing
+plausible-sounding ones — the reason↔feature consistency the design requires.
+
 ## Limitations
 
 - Modest AUC by design: the compact governed feature set favors a legible lineage

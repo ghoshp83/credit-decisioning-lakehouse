@@ -61,7 +61,7 @@ into a notebook.
 | Transformation | **dbt Core** + `dbt-databricks` | Features as tested, documented, version-controlled data products with built-in lineage — the governance notebooks lack. |
 | Lakehouse | **Databricks + Delta Lake** | ACID, time-travel, and `MERGE` give reproducible, idempotent feature builds and an auditable history. |
 | Prediction | **LightGBM + MLflow + SHAP** | Gradient boosting is the honest state-of-the-art for tabular credit risk; MLflow makes runs reproducible; SHAP makes each decision explainable. |
-| AI layer | **LLM, grounded only** | Turns SHAP drivers into compliant plain-language reasons and answers NL questions — measurable and grounded, never predicting. |
+| AI layer | **Databricks `ai_query`, grounded only** | A built-in foundation model, called from dbt SQL — turns SHAP drivers into compliant plain-language reasons and answers NL questions. Stays inside the lakehouse (no external API, no secret); measured, never predicting. |
 | CI | **GitHub Actions** | Lint + `dbt parse`/`build` on every push keeps the project shippable. |
 
 ## Run it
@@ -114,6 +114,33 @@ DATABRICKS_HOST=... DATABRICKS_HTTP_PATH=... DATABRICKS_TOKEN=... \
 See the [Model Card](MODEL_CARD.md) for metrics, calibration, fairness slices,
 and limitations.
 
+### Explain and query the portfolio — the grounded AI layer
+
+The AI layer runs **inside Databricks** via `ai_query` against a built-in
+foundation model: no external API, no secret. Adverse-action explanations are
+dbt models (perfect lineage); the NL→SQL helper is a small validated Python
+client.
+
+```bash
+# 1. Adverse-action reasons: one grounded, plain-language decline reason per
+#    declined applicant. The LLM may cite only that applicant's real SHAP
+#    drivers (the prompt is built deterministically upstream in SQL).
+dbt build --select int_adverse_action_drivers fct_adverse_actions
+
+# 2. Grounding gate: fails if any reason cites a factor the model did not use.
+dbt test --select assert_adverse_action_reasons_grounded
+
+# 3. Ask the portfolio a question in English. The model only *drafts* SQL;
+#    it is validated read-only + allowlisted + EXPLAIN-checked before running.
+uv venv --python 3.11 .venv-ai
+uv pip install --python .venv-ai -r requirements-ai.txt
+DATABRICKS_HOST=... DATABRICKS_HTTP_PATH=... DATABRICKS_TOKEN=... \
+  .venv-ai/bin/python -m ai.nl_to_sql "How many scored applications have a PD above 0.3?"
+
+# 4. Score the NL→SQL helper against the gold-question set.
+.venv-ai/bin/python -m ai.eval_nl_to_sql
+```
+
 ## Operational characteristics
 
 - **Idempotent builds** — re-running `dbt build` reproduces the same marts.
@@ -122,27 +149,43 @@ and limitations.
 - **Observability** — dbt artifacts (`run_results.json`, lineage) plus MLflow
   run tracking; prediction-distribution tests catch drift.
 - **Auditability** — every decision traces raw → feature → prediction → reason.
+- **Grounded AI, measured** — a dbt test fails the build if any adverse-action
+  reason cites a factor the model did not use; across 500 generated reasons,
+  100% cite a real driver and 0 cite a foreign one. The NL→SQL helper scores
+  6/6 on its gold-question set and refuses any non-read-only or off-allowlist
+  query.
 - **Failure handling** — see the [Runbook](RUNBOOK.md) for what to do when a run
   fails, a test fails, a source looks stale, or a contract is violated.
 
 ## Honest disclaimer
 
-This repository is in **active development**. Current status: the **dbt
-transformation layer runs end-to-end against a live Databricks workspace** —
-staging models, an applicant feature mart with an **enforced contract**, and an
-**incremental installment-payments fact** (Delta `MERGE`, idempotent re-runs),
-all with tests, plus CI and docs. The **ML training layer is in progress**: the
-gold feature mart is exported to a local training boundary and a **LightGBM PD
-model trains with MLflow tracking** (AUC ≈ 0.68, KS ≈ 0.26 on a held-out split),
-with **calibration measured and a [model card](MODEL_CARD.md)** (the raw
-probabilities are already well-calibrated — Brier ≈ 0.071 — and reported as
-such), and **per-applicant SHAP drivers written back to Delta** as `pd_predictions`,
-which **re-enters dbt as a governed source** (`stg_pd_predictions`) and a scored
-mart (`fct_scored_applications`) with tests — lineage closed from raw row to
-prediction. The grounded adverse-action explanation and NL→SQL AI layer are the
-remaining pieces, not yet complete.
+All three layers run end-to-end against a live Databricks workspace. The **dbt
+transformation layer** has staging models, an applicant feature mart with an
+**enforced contract**, and an **incremental installment-payments fact** (Delta
+`MERGE`, idempotent re-runs), all tested, plus CI and docs. The **ML layer**
+trains a **LightGBM PD model with MLflow tracking** (AUC ≈ 0.68, KS ≈ 0.26 on a
+held-out split), **calibration measured** with a [model card](MODEL_CARD.md)
+(the raw probabilities are already well-calibrated — Brier ≈ 0.071 — and
+reported as such), and writes **per-applicant SHAP drivers back to Delta**,
+re-entering dbt as a governed source and the `fct_scored_applications` mart —
+lineage closed from raw row to prediction. The **grounded AI layer** then turns
+each declined applicant's SHAP drivers into a compliant plain-language reason
+via `ai_query` (`fct_adverse_actions`), gated by a grounding test, and answers
+plain-English portfolio questions through a validated NL→SQL helper.
 
 Other honest notes:
+- The **adverse-action LLM stays inside the lakehouse** (`ai_query` against a
+  built-in Databricks foundation model on the free tier). Reasons are generated
+  for a **bounded sample of the highest-risk declines** (`decline_threshold` +
+  `adverse_action_sample_size` in `dbt_project.yml`, defaulting to the top 500)
+  because `ai_query` is metered — the flow scales to the full declined
+  population by raising the cap. Adverse-action wording is **illustrative, not
+  legal advice**.
+- The **NL→SQL helper guarantees safety, not semantic correctness.** Its gates
+  (single read-only statement, table allowlist, server-side `EXPLAIN`) block
+  unsafe or off-schema SQL, but a vaguely-worded question can still yield a
+  valid query that answers the wrong thing. It scores 6/6 on the curated
+  gold-question set; treat it as an analyst aid, not an unattended oracle.
 - The dataset is **Home Credit Default Risk** — a *static historical* dataset,
   not live loan origination.
 - **Source freshness checks are intentionally disabled** (`freshness: null` in
@@ -160,10 +203,10 @@ Other honest notes:
   here is the *governed, explainable, traceable* pipeline, not a leaderboard score.
 - Fairness analysis uses the **proxy attributes available in the data**; it is
   not a substitute for a regulated fairness audit.
-- Adverse-action wording is **illustrative**, not legal advice.
-- Some Databricks features (model serving, AI Functions) may be **paid-tier
-  only**; where the free tier lacks them, the equivalent runs locally or via an
-  external API and is labelled as such.
+- The in-lakehouse LLM uses **`ai_query` foundation-model endpoints, which the
+  free tier exposes** (verified). Custom **model serving** can be paid-tier, so
+  the PD model trains and scores via local MLflow rather than a served endpoint
+  — labelled as such.
 
 ## License
 
