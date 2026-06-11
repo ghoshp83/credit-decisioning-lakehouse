@@ -12,6 +12,10 @@ profile: "credit_decisioning_lakehouse"
 vars:
   decline_threshold: 0.30
   adverse_action_sample_size: 500
+  # Databricks foundation-model endpoint that ai_query calls for the
+  # adverse-action explanations. A built-in serverless endpoint on the free
+  # tier -- the LLM stays inside the lakehouse (no external API, no secret).
+  aa_llm_endpoint: databricks-meta-llama-3-3-70b-instruct
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]

@@ -153,6 +153,30 @@ models:
                 min_value: 0
                 max_value: 1
 
+  - name: fct_adverse_actions
+    description: >
+      One grounded adverse-action explanation per declined applicant. ai_query
+      (a Databricks foundation model, in-lakehouse) turns the upstream
+      driver_list into a plain-language reason; the prompt restricts the model
+      to the listed factors. Groundedness is measured, not assumed -- the
+      singular test assert_adverse_action_reasons_grounded fails the build if any
+      reason cites a feature label that was not one of that applicant's drivers.
+      Adverse-action wording is illustrative, not legal advice (see README).
+    columns:
+      - name: application_id
+        description: Declined applicant; one explanation each.
+        data_tests:
+          - not_null
+          - unique
+      - name: adverse_action_reason
+        description: LLM-generated plain-language decline reason, grounded in driver_list.
+        data_tests:
+          - not_null
+      - name: driver_list
+        description: The ordered factors the reason was constrained to cite.
+        data_tests:
+          - not_null
+
 unit_tests:
   - name: test_fct_applications_handles_no_bureau_and_zero_income
     description: >
