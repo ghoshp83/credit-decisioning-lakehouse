@@ -13,6 +13,7 @@ logs/
 # --- python ---
 .venv/
 .venv-ml/
+.venv-ai/
 venv/
 __pycache__/
 *.pyc

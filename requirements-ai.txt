@@ -1,0 +1,7 @@
+# AI layer (NL->SQL helper). The adverse-action explanations need no Python --
+# they run inside dbt via ai_query. The NL->SQL helper talks to the warehouse
+# (drafting SQL via ai_query and executing the validated query) over the
+# Databricks SQL connector; that is its only dependency.
+#   uv venv --python 3.11 .venv-ai
+#   uv pip install --python .venv-ai -r requirements-ai.txt
+databricks-sql-connector>=3.0,<4.0
