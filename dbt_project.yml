@@ -4,6 +4,15 @@ config-version: 2
 
 profile: "credit_decisioning_lakehouse"
 
+# Adverse-action policy knobs (illustrative). decline_threshold is the
+# predicted-PD cutoff above which an applicant is treated as declined;
+# adverse_action_sample_size caps how many of the highest-risk declines get an
+# LLM-generated reason (ai_query is metered, so the demo bounds the batch and
+# the README discloses it scales to the full declined population).
+vars:
+  decline_threshold: 0.30
+  adverse_action_sample_size: 500
+
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]

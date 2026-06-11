@@ -1,0 +1,24 @@
+version: 2
+
+seeds:
+  - name: feature_labels
+    description: >
+      The grounding dictionary for adverse-action explanations: one
+      regulator-friendly label per model feature. This seed is the *only*
+      vocabulary the LLM is permitted to cite — int_adverse_action_drivers maps
+      each applicant's top SHAP drivers to these labels, the prompt instructs
+      the model to use them verbatim, and the consistency eval checks the
+      generated reason against them. Mapping feature names to plain language in
+      governed, version-controlled data (not in a prompt string) keeps the
+      grounding auditable and testable.
+    columns:
+      - name: feature_name
+        description: Model feature name, matching the SHAP-driver columns in fct_scored_applications.
+        data_tests:
+          - not_null
+          - unique
+      - name: feature_label
+        description: Plain-language, adverse-action-style phrasing of the feature.
+        data_tests:
+          - not_null
+          - unique

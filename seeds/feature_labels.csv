@@ -1,0 +1,14 @@
+feature_name,feature_label
+contract_type,the type of loan contract requested
+income_total,your total declared income
+credit_amount,the loan amount requested
+annuity_amount,the periodic loan repayment amount
+age_years,age
+employment_years,length of current employment
+prior_credit_count,the number of prior credit accounts on file
+active_credit_count,the number of currently active credit accounts
+total_credit_debt,the total outstanding balance on existing credit
+total_credit_overdue,the total past-due amount on existing credit
+max_days_overdue,the longest past-due period on existing credit
+credit_to_income_ratio,the requested loan amount relative to income
+annuity_to_income_ratio,the loan repayment burden relative to income

@@ -20,6 +20,46 @@ models:
                 min_value: 1
                 max_value: 1000
 
+  - name: int_adverse_action_drivers
+    description: >
+      One row per declined applicant (predicted_pd at or above the illustrative
+      decline_threshold), bounded to the top adverse_action_sample_size by
+      descending risk. Each of the model's top-3 SHAP drivers is mapped to its
+      feature_labels phrase; driver_list is the exact, ordered set of factors
+      the adverse-action LLM is allowed to cite. A null label means a driver
+      feature is missing from the seed -- the not_null tests fail loud so the
+      grounding vocabulary can never silently drift from the model's features.
+    columns:
+      - name: application_id
+        description: Declined applicant; one row each.
+        data_tests:
+          - not_null
+          - unique
+      - name: predicted_pd
+        description: Model probability of default for the applicant, in [0, 1].
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: top1_label
+        description: Plain-language label for the strongest risk-increasing driver.
+        data_tests:
+          - not_null
+      - name: top2_label
+        description: Plain-language label for the second driver.
+        data_tests:
+          - not_null
+      - name: top3_label
+        description: Plain-language label for the third driver.
+        data_tests:
+          - not_null
+      - name: driver_list
+        description: Ordered, semicolon-joined list of the three labels -- the only factors the LLM may cite.
+        data_tests:
+          - not_null
+
 unit_tests:
   - name: test_int_bureau_aggregations_rolls_up_per_applicant
     description: >
@@ -38,3 +78,35 @@ unit_tests:
       rows:
         - {application_id: 100, prior_credit_count: 2, active_credit_count: 1, total_credit_debt: 1500.0, total_credit_overdue: 50.0, max_days_overdue: 10}
         - {application_id: 200, prior_credit_count: 1, active_credit_count: 1, total_credit_debt: 300.0, total_credit_overdue: 0.0, max_days_overdue: 5}
+
+  - name: test_int_adverse_action_drivers_thresholds_ranks_and_labels
+    description: >
+      The deterministic grounding contract. With decline_threshold 0.30 and a
+      sample cap of 2, an applicant below the threshold is dropped, the rest are
+      ranked by descending risk, each top feature is mapped to its seed label,
+      and driver_list is assembled in order. Fails if the threshold, ranking,
+      cap, label join, or list assembly is wrong -- any of which would let the
+      LLM cite a factor the model did not actually use.
+    model: int_adverse_action_drivers
+    overrides:
+      vars:
+        decline_threshold: 0.30
+        adverse_action_sample_size: 2
+    given:
+      - input: ref('fct_scored_applications')
+        rows:
+          - {application_id: 1, predicted_pd: 0.50, top1_feature: 'employment_years', top1_shap: 0.20, top2_feature: 'credit_to_income_ratio', top2_shap: 0.10, top3_feature: 'total_credit_debt', top3_shap: 0.05}
+          - {application_id: 2, predicted_pd: 0.40, top1_feature: 'credit_amount', top1_shap: 0.18, top2_feature: 'age_years', top2_shap: 0.09, top3_feature: 'income_total', top3_shap: 0.04}
+          - {application_id: 3, predicted_pd: 0.10, top1_feature: 'age_years', top1_shap: 0.01, top2_feature: 'income_total', top2_shap: 0.01, top3_feature: 'credit_amount', top3_shap: 0.01}
+      - input: ref('feature_labels')
+        rows:
+          - {feature_name: 'employment_years', feature_label: 'length of current employment'}
+          - {feature_name: 'credit_to_income_ratio', feature_label: 'the requested loan amount relative to income'}
+          - {feature_name: 'total_credit_debt', feature_label: 'the total outstanding balance on existing credit'}
+          - {feature_name: 'credit_amount', feature_label: 'the loan amount requested'}
+          - {feature_name: 'age_years', feature_label: 'age'}
+          - {feature_name: 'income_total', feature_label: 'your total declared income'}
+    expect:
+      rows:
+        - {application_id: 1, predicted_pd: 0.50, decline_rank: 1, top1_feature: 'employment_years', top1_label: 'length of current employment', top1_shap: 0.20, top2_feature: 'credit_to_income_ratio', top2_label: 'the requested loan amount relative to income', top2_shap: 0.10, top3_feature: 'total_credit_debt', top3_label: 'the total outstanding balance on existing credit', top3_shap: 0.05, driver_list: '1. length of current employment; 2. the requested loan amount relative to income; 3. the total outstanding balance on existing credit'}
+        - {application_id: 2, predicted_pd: 0.40, decline_rank: 2, top1_feature: 'credit_amount', top1_label: 'the loan amount requested', top1_shap: 0.18, top2_feature: 'age_years', top2_label: 'age', top2_shap: 0.09, top3_feature: 'income_total', top3_label: 'your total declared income', top3_shap: 0.04, driver_list: '1. the loan amount requested; 2. age; 3. your total declared income'}
