@@ -27,7 +27,9 @@ from databricks import sql
 
 CATALOG = os.environ.get("DBT_CATALOG", "workspace")
 MART_SCHEMA = os.environ.get("MART_SCHEMA", "credit_dev_marts")
-LLM_ENDPOINT = os.environ.get("NL_SQL_ENDPOINT", "databricks-meta-llama-3-3-70b-instruct")
+LLM_ENDPOINT = os.environ.get(
+    "NL_SQL_ENDPOINT", "databricks-meta-llama-3-3-70b-instruct"
+)
 
 # The only tables the generated SQL may read. Unqualified and catalog-qualified
 # forms are both accepted so the model can write either.
@@ -35,8 +37,20 @@ ALLOWED_TABLES = {"fct_applications", "fct_scored_applications", "fct_adverse_ac
 
 # Statement-level write/DDL verbs that must never appear in a read-only query.
 FORBIDDEN = [
-    "insert", "update", "delete", "merge", "drop", "alter", "create",
-    "truncate", "grant", "revoke", "replace", "refresh", "copy", "into",
+    "insert",
+    "update",
+    "delete",
+    "merge",
+    "drop",
+    "alter",
+    "create",
+    "truncate",
+    "grant",
+    "revoke",
+    "replace",
+    "refresh",
+    "copy",
+    "into",
 ]
 
 
@@ -77,8 +91,7 @@ def schema_context(cur) -> str:
             f"{CATALOG}.{MART_SCHEMA} -- are the marts built?"
         )
     lines = [
-        f"{CATALOG}.{MART_SCHEMA}.{t} ({', '.join(cols[t])})"
-        for t in sorted(cols)
+        f"{CATALOG}.{MART_SCHEMA}.{t} ({', '.join(cols[t])})" for t in sorted(cols)
     ]
     return "\n".join(lines)
 
@@ -121,7 +134,9 @@ def validate(sql_text: str) -> None:
 
     for verb in FORBIDDEN:
         if re.search(rf"\b{verb}\b", lowered):
-            raise ValueError(f"Refused: contains forbidden keyword '{verb}'.\n{sql_text}")
+            raise ValueError(
+                f"Refused: contains forbidden keyword '{verb}'.\n{sql_text}"
+            )
 
     referenced = set(re.findall(r"\b(?:from|join)\s+([a-zA-Z0-9_.]+)", lowered))
     for table in referenced:

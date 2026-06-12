@@ -61,20 +61,30 @@ def main() -> None:
 
     print(f"AUC (eval)        = {auc:.4f}")
     print(f"Brier raw         = {brier_raw:.4f}")
-    print(f"Brier calibrated  = {brier_cal:.4f}  ({'better' if brier_cal < brier_raw else 'worse'})")
+    print(
+        f"Brier calibrated  = {brier_cal:.4f}  ({'better' if brier_cal < brier_raw else 'worse'})"
+    )
 
     print("\nReliability (calibrated, deciles): pred -> observed")
-    frac_pos, mean_pred = calibration_curve(eval_y, eval_cal, n_bins=10, strategy="quantile")
+    frac_pos, mean_pred = calibration_curve(
+        eval_y, eval_cal, n_bins=10, strategy="quantile"
+    )
     for p, o in zip(mean_pred, frac_pos):
         print(f"  {p:.3f} -> {o:.3f}")
 
     print("\nFairness slices by contract_type: n, observed_rate, mean_pred, auc")
-    for slice_val, grp in eval_df.assign(_cal=eval_cal).groupby("contract_type", observed=True):
+    for slice_val, grp in eval_df.assign(_cal=eval_cal).groupby(
+        "contract_type", observed=True
+    ):
         y = grp[TARGET].to_numpy()
         rate = y.mean()
         mean_pred_s = grp["_cal"].mean()
-        slice_auc = roc_auc_score(y, grp["_cal"]) if len(np.unique(y)) > 1 else float("nan")
-        print(f"  {slice_val:<16} n={len(grp):>6,}  rate={rate:.4f}  pred={mean_pred_s:.4f}  auc={slice_auc:.4f}")
+        slice_auc = (
+            roc_auc_score(y, grp["_cal"]) if len(np.unique(y)) > 1 else float("nan")
+        )
+        print(
+            f"  {slice_val:<16} n={len(grp):>6,}  rate={rate:.4f}  pred={mean_pred_s:.4f}  auc={slice_auc:.4f}"
+        )
 
     mlflow.set_experiment(EXPERIMENT)
     with mlflow.start_run(run_name="calibration"):

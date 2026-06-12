@@ -31,7 +31,9 @@ OUT = Path(__file__).parent / "data" / "features.parquet"
 def _require(name: str) -> str:
     val = os.environ.get(name)
     if not val:
-        sys.exit(f"FATAL: environment variable {name} is not set (see README auth section)")
+        sys.exit(
+            f"FATAL: environment variable {name} is not set (see README auth section)"
+        )
     return val
 
 
@@ -43,7 +45,9 @@ def main() -> None:
     fqtn = f"{CATALOG}.{MART_SCHEMA}.{TABLE}"
     print(f"Pulling {fqtn} from {host} ...")
 
-    with sql.connect(server_hostname=host, http_path=http_path, access_token=token) as conn:
+    with sql.connect(
+        server_hostname=host, http_path=http_path, access_token=token
+    ) as conn:
         with conn.cursor() as cur:
             cur.execute(f"select * from {fqtn}")
             df = cur.fetchall_arrow().to_pandas()
@@ -52,7 +56,9 @@ def main() -> None:
     df.to_parquet(OUT, index=False)
 
     default_rate = df["is_default"].mean()
-    print(f"Wrote {OUT}  rows={len(df):,}  cols={df.shape[1]}  default_rate={default_rate:.4f}")
+    print(
+        f"Wrote {OUT}  rows={len(df):,}  cols={df.shape[1]}  default_rate={default_rate:.4f}"
+    )
 
 
 if __name__ == "__main__":

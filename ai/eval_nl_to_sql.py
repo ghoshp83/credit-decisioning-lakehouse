@@ -77,7 +77,9 @@ def run() -> None:
         passed += ok
         print(f"[{'PASS' if ok else 'FAIL'}] {question}")
         print(f"       expected={want!r} got={got!r}")
-        print(f"       sql: {sql_text.splitlines()[0] if isinstance(sql_text, str) else sql_text}\n")
+        print(
+            f"       sql: {sql_text.splitlines()[0] if isinstance(sql_text, str) else sql_text}\n"
+        )
 
     n = len(GOLD)
     print(f"NL->SQL gold-question accuracy: {passed}/{n} ({100 * passed / n:.0f}%)")

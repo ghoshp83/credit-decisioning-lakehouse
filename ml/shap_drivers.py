@@ -41,7 +41,9 @@ TOP_N = 3
 def _require(name: str) -> str:
     val = os.environ.get(name)
     if not val:
-        sys.exit(f"FATAL: environment variable {name} is not set (see README auth section)")
+        sys.exit(
+            f"FATAL: environment variable {name} is not set (see README auth section)"
+        )
     return val
 
 
