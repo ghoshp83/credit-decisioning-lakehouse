@@ -49,3 +49,6 @@ jobs:
 
       - name: Python lint (ruff)
         run: ruff check .
+
+      - name: Python format check (ruff)
+        run: ruff format --check .
