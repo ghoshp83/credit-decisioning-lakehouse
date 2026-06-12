@@ -40,8 +40,8 @@ flowchart LR
         E[SHAP drivers + fairness + model card]
     end
     subgraph AI["AI layer - grounded only"]
-        F[adverse-action explanation<br/>grounded in SHAP]
-        G[NL to SQL portfolio analytics<br/>validated]
+        F[fct_adverse_actions<br/>SHAP-grounded decline reason]
+        G[ai/nl_to_sql.py<br/>validated NL to SQL analytics]
     end
 
     A --> B --> C --> D --> E
@@ -70,8 +70,9 @@ into a notebook.
 > Risk dataset loaded into a raw schema.
 
 ```bash
-# 1. Install tooling
-python -m pip install -r requirements-dev.txt
+# 1. Install the dbt tooling (uv, as with the ML/AI envs further below)
+uv venv --python 3.11 .venv
+uv pip install --python .venv -r requirements-dev.txt
 
 # 2. Point dbt at your Databricks workspace (no secrets in files)
 export DATABRICKS_HOST=adb-xxxx.cloud.databricks.com
@@ -80,9 +81,9 @@ export DATABRICKS_TOKEN=dapi...
 cp profiles.yml.example ~/.dbt/profiles.yml
 
 # 3. Build and test the dbt project
-dbt deps
-dbt build          # runs models + their tests
-dbt docs generate  # lineage / documentation
+.venv/bin/dbt deps
+.venv/bin/dbt build          # runs models + their tests
+.venv/bin/dbt docs generate  # lineage / documentation
 ```
 
 ### Train the probability-of-default model
