@@ -42,7 +42,10 @@ jobs:
         run: dbt parse
 
       - name: SQL lint (sqlfluff)
-        run: sqlfluff lint models --dialect databricks
+        # Lint every SQL surface, not just models: analyses (grounding metrics)
+        # and singular tests (the adverse-action grounding gate) are real SQL
+        # and must pass the same offline gate.
+        run: sqlfluff lint models analyses tests --dialect databricks
 
       - name: Python lint (ruff)
         run: ruff check .
