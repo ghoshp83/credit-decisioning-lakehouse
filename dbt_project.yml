@@ -32,6 +32,13 @@ clean-targets:
 # Medallion layering mapped onto dbt's staging -> intermediate -> marts.
 models:
   credit_decisioning_lakehouse:
+    # Push the model and column descriptions written in the schema YAMLs down to
+    # Delta as table/column COMMENTs, so they show up in Unity Catalog -- the
+    # governed data products are documented where analysts actually browse them,
+    # not only inside dbt. Applies on the next live `dbt build`.
+    +persist_docs:
+      relation: true
+      columns: true
     staging:
       +materialized: view
       +schema: staging
