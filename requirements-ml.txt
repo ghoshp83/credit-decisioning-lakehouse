@@ -3,17 +3,20 @@
 # Install into a dedicated venv:  uv venv --python 3.11 .venv-ml
 #                                 uv pip install --python .venv-ml -r requirements-ml.txt
 
-# Pull the gold feature mart from the Databricks SQL warehouse
+# Pull the gold feature mart from the Databricks SQL warehouse.
+# Upper bounds cap the next major so the documented MODEL_CARD.md metrics stay
+# reproducible -- a silent major bump in lightgbm/shap/scikit-learn could move
+# the AUC/KS/Brier numbers or the SHAP attributions out from under the card.
 databricks-sql-connector>=3.0,<4.0
-pandas>=2.0
-pyarrow>=15.0
+pandas>=2.0,<3.0
+pyarrow>=15.0,<20.0
 
 # Probability-of-default model + calibration + metrics
-lightgbm>=4.0
-scikit-learn>=1.4
+lightgbm>=4.0,<5.0
+scikit-learn>=1.4,<2.0
 
 # Experiment tracking (local file store by default — see ml/README.md)
-mlflow>=2.12
+mlflow>=2.12,<3.0
 
-# Per-prediction explanation drivers
-shap>=0.45
+# Per-prediction explanation drivers (0.x: minor bumps can change attributions)
+shap>=0.45,<0.50
