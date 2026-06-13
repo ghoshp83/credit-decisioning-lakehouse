@@ -3,9 +3,9 @@
 # layer) — NOT by dbt itself (dbt uses dbt_project.yml + profiles.yml). This
 # keeps the non-dbt knobs in one place. Workspace IDs match databricks.yml.
 #
-# Honest status: the ml_model and ai_layer sections describe PLANNED layers
-# (see the README roadmap) — endpoints are recorded for when we build them and
-# are not yet wired or verified against the free workspace.
+# Status: all three layers (dbt transform, ML, grounded AI) are built and run
+# live against the free workspace — the endpoints and knobs below reflect what
+# actually ran (see README + MODEL_CARD.md), not a roadmap.
 
 workspace:
   host: https://dbc-5604c867-d90d.cloud.databricks.com   # free Databricks workspace
@@ -24,21 +24,24 @@ raw_data:
   tables:
     - application_train
     - bureau
-  # Remaining tables (bureau_balance, previous_application, installments_payments,
-  # POS_CASH_balance, credit_card_balance) load as feature sources are added.
+    - installments_payments   # feeds the incremental fct_installment_payments fact
+  # Remaining tables (bureau_balance, previous_application, POS_CASH_balance,
+  # credit_card_balance) load as feature sources are added.
 
-# Traditional ML — calibrated probability-of-default model. NOT yet built.
+# Traditional ML — probability-of-default model (built; tracked in local MLflow).
 ml_model:
   experiment_name: /Shared/credit-decisioning-pd
   algorithm: lightgbm
   target: is_default
-  calibration: isotonic
+  # Raw probabilities are kept: isotonic recalibration moved Brier by +0.0001
+  # (no improvement) on this model — see MODEL_CARD.md.
+  calibration: none
 
-# AI layer — grounded-only; no LLM in the prediction path. NOT yet built.
-#   (1) SHAP-grounded adverse-action explanations
-#   (2) validated NL->SQL portfolio analytics
-# Verify endpoint availability on the free tier before relying on it.
+# AI layer — grounded-only; no LLM in the prediction path. Built and live.
+#   (1) SHAP-grounded adverse-action explanations (ai_query, in dbt)
+#   (2) validated NL->SQL portfolio analytics (ai/nl_to_sql.py)
+# In-lakehouse foundation-model endpoint on the free tier (no external API).
 ai_layer:
-  llm_endpoint: databricks-llama-4-maverick
+  llm_endpoint: databricks-meta-llama-3-3-70b-instruct
   temperature: 0.2
   max_tokens: 1000
