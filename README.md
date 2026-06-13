@@ -75,6 +75,7 @@ uv venv --python 3.11 .venv
 uv pip install --python .venv -r requirements-dev.txt
 
 # 2. Point dbt at your Databricks workspace (no secrets in files)
+#    See .env.example for every variable and its default.
 export DATABRICKS_HOST=adb-xxxx.cloud.databricks.com
 export DATABRICKS_HTTP_PATH=/sql/1.0/warehouses/xxxx
 export DATABRICKS_TOKEN=dapi...
