@@ -152,6 +152,25 @@ models:
               arguments:
                 min_value: 0
                 max_value: 1
+      - name: top1_feature
+        description: >
+          Name of the strongest risk-increasing feature for this applicant
+          (largest positive SHAP value). The grounding vocabulary for the
+          adverse-action reason resolves from these driver columns.
+        data_tests:
+          # A scored row must always have a top driver; null would silently
+          # break the downstream adverse-action grounding join.
+          - not_null
+      - name: top1_shap
+        description: SHAP contribution of the strongest driver (positive = pushes risk up).
+      - name: top2_feature
+        description: Name of the second strongest risk-increasing feature.
+      - name: top2_shap
+        description: SHAP contribution of the second driver.
+      - name: top3_feature
+        description: Name of the third strongest risk-increasing feature.
+      - name: top3_shap
+        description: SHAP contribution of the third driver.
 
   - name: fct_adverse_actions
     description: >

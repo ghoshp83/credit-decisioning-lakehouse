@@ -30,3 +30,13 @@ models:
         description: Most risk-increasing feature for this applicant (largest positive SHAP).
         data_tests:
           - not_null
+      - name: top1_shap
+        description: SHAP contribution of the strongest driver (positive = pushes risk up).
+      - name: top2_feature
+        description: Second most risk-increasing feature.
+      - name: top2_shap
+        description: SHAP contribution of the second driver.
+      - name: top3_feature
+        description: Third most risk-increasing feature.
+      - name: top3_shap
+        description: SHAP contribution of the third driver.
