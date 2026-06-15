@@ -5,6 +5,12 @@ on:
     branches: ["**"]
   pull_request:
 
+# Cancel an in-flight run when a newer commit lands on the same ref, so rapid
+# pushes don't queue redundant offline gates.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
