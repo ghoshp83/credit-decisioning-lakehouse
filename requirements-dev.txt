@@ -5,5 +5,7 @@ dbt-databricks>=1.8,<2.0
 sqlfluff>=3.0,<4.0
 sqlfluff-templater-dbt>=3.0,<4.0
 
-# Python linting (helpers, macros tooling)
-ruff>=0.5
+# Python linting (helpers, macros tooling). Cap the next major: `ruff format`
+# output can shift across releases, and CI gates on `ruff format --check` --
+# an unbounded bump could fail CI on style alone (same reasoning as the ML pins).
+ruff>=0.5,<1.0
