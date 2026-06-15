@@ -25,10 +25,14 @@ jobs:
         with:
           python-version: "3.11"
 
+      # uv is the project's standard installer (README run-it + the ml/ai envs
+      # all use it); using it in CI too keeps one toolchain and caches resolves.
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+        run: uv pip install --system -r requirements-dev.txt
 
       - name: Provision dbt profile
         run: |
