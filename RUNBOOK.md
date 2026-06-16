@@ -99,5 +99,6 @@ source of truth), not by relaxing the contract. Example already in the code:
 ## Known limitations
 
 See the **Honest disclaimer** in the [README](README.md#honest-disclaimer): the
-dataset is static historical (not live origination), the ML and AI layers are
-not yet implemented, and some Databricks features may be paid-tier only.
+dataset is static historical (not live origination), adverse-action wording is
+illustrative (not legal advice), fairness is assessed on proxy attributes only,
+and some Databricks features may be paid-tier only.
