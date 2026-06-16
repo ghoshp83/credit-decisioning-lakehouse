@@ -29,7 +29,7 @@ prediction path.
 ```mermaid
 flowchart LR
     subgraph Bronze["Bronze - raw (dbt sources)"]
-        A[Home Credit tables<br/>application, bureau,<br/>previous_application, ...]
+        A[Home Credit tables<br/>application, bureau,<br/>installments, ...]
     end
     subgraph Silver["Silver - staging/intermediate (dbt)"]
         B[cleaned, typed, conformed<br/>+ enforced contracts]
