@@ -90,7 +90,7 @@ source of truth), not by relaxing the contract. Example already in the code:
 
 ## Before pushing
 
-- `dbt parse` + `sqlfluff lint models/` + `ruff check` — the same gates CI runs,
+- `dbt parse` + `sqlfluff lint models analyses tests` + `ruff check` — the same gates CI runs,
   all offline (no warehouse connection needed). A local mirror via `uv` keeps a
   Python 3.11 virtualenv for this.
 - Never commit secrets. `profiles.yml` and any token live outside tracked files;
