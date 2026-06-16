@@ -33,7 +33,7 @@ jobs:
 
       # uv is the project's standard installer (README run-it + the ml/ai envs
       # all use it); using it in CI too keeps one toolchain and caches resolves.
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v8
         with:
           enable-cache: true
 
