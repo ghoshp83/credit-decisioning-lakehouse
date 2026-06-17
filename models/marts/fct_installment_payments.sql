@@ -5,11 +5,18 @@
 -- historical dump, so the incremental watermark demonstrates the mechanics
 -- rather than live ingestion (see README honest disclaimer) — the MERGE key is
 -- what guarantees correctness on every re-run.
+--
+-- liquid_clustered_by application_id: this is the largest, event-grain fact and
+-- it is almost always read per applicant (joins/filters on application_id), so
+-- clustering on that key is the deliberate access-pattern choice. The MERGE
+-- still keys on payment_id. Clustering is applied physically on the next live
+-- `dbt build` (CI parses offline only — see README).
 {{
     config(
         materialized='incremental',
         incremental_strategy='merge',
         unique_key='payment_id',
+        liquid_clustered_by='application_id',
         on_schema_change='fail',
     )
 }}
