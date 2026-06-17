@@ -78,6 +78,25 @@ This is the one incremental model (Delta `MERGE`, `unique_key = payment_id`).
 - **Schema/contract change** on an incremental model needs `--full-refresh` (a
   `MERGE` cannot alter the table shape in place).
 
+## Reproducing a past decision (Delta time-travel)
+
+Every mart is a Delta table, so any prior build is recoverable by version or
+timestamp — the audit answer to *"which data did this decision run against?"*.
+List the versions, then read an earlier state:
+
+```sql
+describe history workspace.credit_dev_marts.fct_scored_applications;        -- versions + timestamps
+select * from workspace.credit_dev_marts.fct_scored_applications version as of 3;
+select * from workspace.credit_dev_marts.fct_scored_applications timestamp as of '2026-06-01';
+```
+
+On this static dataset there is effectively one meaningful version, so this is
+**illustrative of the mechanism**; the payoff appears on a live feed, where
+pinning the version a score was built from makes a past adverse-action
+explanation exactly reproducible. History retention follows Delta's default
+window (tune with `delta.logRetentionDuration` if a longer audit trail is
+needed).
+
 ## When a contract is violated
 
 Marts (`fct_applications`, `fct_installment_payments`) have **enforced model

@@ -61,7 +61,7 @@ into a notebook.
 | Layer | Choice | Why |
 |------|--------|-----|
 | Transformation | **dbt Core** + `dbt-databricks` | Features as tested, documented, version-controlled data products with built-in lineage — the governance notebooks lack. |
-| Lakehouse | **Databricks + Delta Lake** | ACID, time-travel, and `MERGE` give reproducible, idempotent feature builds and an auditable history. |
+| Lakehouse | **Databricks + Delta Lake** | ACID + `MERGE` give idempotent, reproducible feature builds; liquid clustering on the marts matches their real access patterns; time-travel lets an audit replay the exact table version a decision ran against (see [Runbook](RUNBOOK.md)). |
 | Prediction | **LightGBM + MLflow + SHAP** | Gradient boosting is the honest state-of-the-art for tabular credit risk; MLflow makes runs reproducible; SHAP makes each decision explainable. |
 | AI layer | **Databricks `ai_query`, grounded only** | A built-in foundation model, called from dbt SQL — turns SHAP drivers into compliant plain-language reasons and answers NL questions. Stays inside the lakehouse (no external API, no secret); measured, never predicting. |
 | CI | **GitHub Actions** | Lint + `dbt parse`/`build` on every push keeps the project shippable. |
