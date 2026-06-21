@@ -1,6 +1,9 @@
 # Credit Decisioning Lakehouse
 
 [![CI](https://github.com/ghoshp83/credit-decisioning-lakehouse/actions/workflows/ci.yml/badge.svg)](https://github.com/ghoshp83/credit-decisioning-lakehouse/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-models%20%26%20lineage-blue)](https://ghoshp83.github.io/credit-decisioning-lakehouse/)
+
+📖 **[Live dbt docs & lineage](https://ghoshp83.github.io/credit-decisioning-lakehouse/)** — browse every model with its tests and documentation, and the full lineage DAG from raw sources to the gold marts.
 
 **An auditable credit-risk pipeline on dbt + Databricks: raw applications become governed feature marts, a calibrated model predicts probability-of-default, and every decline is explained in plain language — grounded in the model's own SHAP drivers, traceable from raw row to final reason.**
 
