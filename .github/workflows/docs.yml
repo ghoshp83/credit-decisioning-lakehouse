@@ -1,0 +1,78 @@
+name: docs
+
+# Publish the dbt documentation site (model docs + lineage DAG) to GitHub Pages.
+# Like ci.yml this is an OFFLINE build: `dbt parse` produces the manifest and
+# `dbt docs generate --no-compile --empty-catalog` renders the static site from
+# it without ever connecting to Databricks (the placeholders below only satisfy
+# profile rendering). The catalog is intentionally empty — the published site
+# carries the model/test documentation and lineage, not live column statistics.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time; let an in-flight build finish rather than
+# cancelling a publish midway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: "dbc-docs-placeholder.cloud.databricks.com"
+      DATABRICKS_HTTP_PATH: "/sql/1.0/warehouses/docs-placeholder"
+      DATABRICKS_TOKEN: "docs-offline-render-only-not-a-real-token"
+      DBT_CATALOG: "workspace"
+      DBT_SCHEMA: "docs"
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Install dbt tooling
+        run: uv pip install --system -r requirements-dev.txt
+
+      - name: Provision dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cp profiles.yml.example ~/.dbt/profiles.yml
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: Build dbt docs (offline manifest + empty catalog)
+        run: |
+          dbt parse
+          dbt docs generate --static --no-compile --empty-catalog
+
+      - name: Assemble Pages site
+        run: |
+          mkdir -p site
+          cp target/static_index.html site/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
